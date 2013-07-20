@@ -101,9 +101,8 @@ namespace serialize {
 			template < typename StreamT >
 			static void push(StreamT &os, const char ( &val )[N])
 			{
-				std::uint32_t len = std::char_traits<char>::length(val);
-				os.push(len);
-				os.push_pointer(val, len);
+				os.push(N);
+				os.push_pointer(val, N);
 			}
 
 			template < typename StreamT >
@@ -121,9 +120,8 @@ namespace serialize {
 			template < typename StreamT >
 			static void push(StreamT &os, const wchar_t ( &val )[N])
 			{
-				std::uint32_t len = std::char_traits<wchar_t>::length(val);
-				os.push(len);
-				os.push_pointer(val, len);
+				os.push(N);
+				os.push_pointer(val, N);
 			}
 
 			template < typename StreamT >

@@ -4,88 +4,88 @@
 
 #include <cassert>
 #include <type_traits>
+#include <cstdint>
+
+namespace serialize { namespace detail {
 
 
-namespace serialize
-{
-	namespace detail
+	template <
+		typename CharT,
+		template < typename > class BufferT
+	>
+	class binary_out_t
 	{
-		template < typename CharT, typename ImplT >
-		class serialize_out_t
+		typedef BufferT<CharT>		buffer_t;
+
+	public:
+		typedef CharT				value_type;
+		typedef CharT *				pointer;
+		typedef value_type &		reference;
+		typedef const CharT *		const_pointer;
+		typedef const value_type &	const_reference;
+
+	private:
+		std::uint32_t out_pos_;
+		buffer_t &buffer_;
+
+	public:
+		binary_out_t(buffer_t &buffer)
+			: out_pos_(0)
+			, buffer_(buffer)
+		{}
+
+	public:
+		std::uint32_t out_length() const
 		{
-		public:
-			typedef CharT				value_type;
-			typedef CharT *				pointer;
-			typedef value_type &		reference;
-			typedef const CharT *		const_pointer;
-			typedef const value_type &	const_reference;
+			return out_pos_;
+		}
 
-		private:
-			size_t out_pos_;
+	public:
+		template < typename T >
+		void pop(T &val)
+		{
+			static_assert( std::is_pod<T>::value, "T must POD type" );
 
-		public:
-			serialize_out_t()
-				: out_pos_(0)
-			{}
+			assert(sizeof( T ) + out_pos_ <= buffer_.buffer_length());
+			if(sizeof( T ) + out_pos_ > buffer_.buffer_length())
+				throw std::out_of_range("sizeof(T) + pos_ > bufLen_");
 
-		public:
-			size_t out_length() const
-			{
-				return out_pos_;
-			}
+			pointer buf = reinterpret_cast< pointer >( &val );
+			buffer_.read(buf, sizeof( T ), out_pos_);
+			out_pos_ += sizeof( T );
+		}
 
-		public:
-			template < typename T >
-			void pop(T &val)
-			{
-				static_assert(std::is_pod<T>::value, "T must POD type");
+		template < typename T, std::uint32_t N >
+		void pop_array(T(&arr)[N])
+		{
+			static_assert( std::is_pod<T>::value, "T must POD type" );
 
-				assert(sizeof(T) + out_pos_ <= impl()->buffer_length());
-				if( sizeof(T) + out_pos_ > impl()->buffer_length() )
-					throw std::out_of_range("sizeof(T) + pos_ > bufLen_");
+			const std::uint32_t len = sizeof( T ) * N;
+			assert(len + out_pos_ <= buffer_.buffer_length());
+			if(len + out_pos_ > buffer_.buffer_length())
+				throw std::out_of_range("sizeof(T) + pos_ > bufLen_");
 
-				pointer buf = reinterpret_cast<pointer>(&val);
-				impl()->read(buf, sizeof(T), out_pos_);
-				out_pos_ += sizeof(T);
-			}
+			pointer buf = reinterpret_cast< pointer >( &arr );
+			buffer_.read(buf, len, out_pos_);
+			out_pos_ += len;
+		}
 
-			template < typename T, size_t N >
-			void pop_array(T (&arr)[N])
-			{
-				static_assert(std::is_pod<T>::value, "T must POD type");
+		template < typename T >
+		void pop_pointer(T *ptr, std::uint32_t cnt = 1)
+		{
+			static_assert( std::is_pod<T>::value, "T must POD type" );
 
-				const size_t len = sizeof(T) * N;
-				assert(len + out_pos_ <= impl()->buffer_length());
-				if( len + out_pos_ > impl()->buffer_length() )
-					throw std::out_of_range("sizeof(T) + pos_ > bufLen_");
+			const std::uint32_t len = sizeof( T ) * cnt;
+			assert(len + out_pos_ <= buffer_.buffer_length());
+			if(len + out_pos_ > buffer_.buffer_length())
+				throw std::out_of_range("sizeof(T) + pos_ > bufLen_");
 
-				pointer buf = reinterpret_cast<pointer>(&arr);
-				impl()->read(buf, len, out_pos_);
-				out_pos_ += len;
-			}
-
-			template < typename T >
-			void pop_pointer(T *ptr, size_t cnt = 1)
-			{
-				static_assert(std::is_pod<T>::value, "T must POD type");
-
-				const size_t len = sizeof(T) * cnt;
-				assert(len + out_pos_ <= impl()->buffer_length());
-				if( len + out_pos_ > impl()->buffer_length() )
-					throw std::out_of_range("sizeof(T) + pos_ > bufLen_");
-
-				pointer buf = reinterpret_cast<pointer>(ptr);
-				impl()->read(buf, len, out_pos_);
-				out_pos_ += len;
-			}
-
-		private:
-			ImplT *impl()
-			{
-				return static_cast<ImplT *>(this);
-			}
-		};
-	}
+			pointer buf = reinterpret_cast< pointer >( ptr );
+			buffer_.read(buf, len, out_pos_);
+			out_pos_ += len;
+		}
+	};
+}
 }
 
 

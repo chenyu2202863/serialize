@@ -28,17 +28,17 @@ namespace serialize
 
 		private:
 			pointer buf_;
-			const size_t buf_len_;
-			size_t data_len_;
+			const std::uint32_t buf_len_;
+			std::uint32_t data_len_;
 
 		public:
 			explicit memory_t(pointer buf)
 				: buf_(buf)
-				, buf_len_(std::numeric_limits<size_t>::max())
+				, buf_len_(std::numeric_limits<std::uint32_t>::max())
 				, data_len_(0)
 			{}
 
-			memory_t(pointer buf, size_t len)
+			memory_t(pointer buf, std::uint32_t len)
 				: buf_(buf)
 				, buf_len_(len)
 				, data_len_(0)
@@ -50,22 +50,22 @@ namespace serialize
 				return buf_;
 			}
 
-			size_t buffer_length() const
+			std::uint32_t buffer_length() const
 			{
 				return buf_len_;
 			}
 
-			size_t data_length() const
+			std::uint32_t data_length() const
 			{
 				return data_len_;
 			}
 
-			void read(pointer buf, size_t len, size_t pos) const
+			void read(pointer buf, std::uint32_t len, std::uint32_t pos) const
 			{
 				::memmove(buf, buf_ + pos, len);
 			}
 
-			void write(const_pointer buf, size_t len, size_t pos)
+			void write(const_pointer buf, std::uint32_t len, std::uint32_t pos)
 			{
 				data_len_ += len;
 				::memmove(buf_ + pos, buf, len);
@@ -108,12 +108,12 @@ namespace serialize
 			}
 
 		public:
-			size_t buffer_length() const
+			std::uint32_t buffer_length() const
 			{
-				return std::numeric_limits<size_t>::max();
+				return std::numeric_limits<std::uint32_t>::max();
 			}
 
-			void read(pointer buf, size_t len, size_t pos)
+			void read(pointer buf, std::uint32_t len, std::uint32_t pos)
 			{
 				assert(file_.good());
 				if( !file_.good() )
@@ -123,7 +123,7 @@ namespace serialize
 				file_.read(buf, len);
 			}
 
-			void write(const_pointer buf, size_t len, size_t pos)
+			void write(const_pointer buf, std::uint32_t len, std::uint32_t pos)
 			{
 				assert(file_.good());
 				if( !file_.good() )
