@@ -7,11 +7,11 @@ Use of this source code is governed by a BSD-style license that can be found in 
 序列化库,支持C++基础类型及多种stl容器。包括输出为binary及text两种方式，方便扩展。
 
 特点:
-	1. 接口简单，易于集成，方便维护
-	2. 基于Policy-based设计模式，默认提供binary及text两种格式化方式
-	3. 采用C++流式方式方便易用
-	4. 扩展性强（针对用户自定义类型，输出目标）
-	5. 编译期对用户自定义类型侦错，及in、out误用侦错
+1. 接口简单，易于集成，方便维护
+2. 基于Policy-based设计模式，默认提供binary及text两种格式化方式
+3. 采用C++流式方式方便易用
+4. 扩展性强（针对用户自定义类型，输出目标）
+5. 编译期对用户自定义类型侦错，及in、out误用侦错
 
 使用方式:
 
