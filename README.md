@@ -6,10 +6,17 @@ Use of this source code is governed by a BSD-style license that can be found in 
 
 序列化库,支持C++基础类型及多种stl容器。包括输出为binary及text两种方式，方便扩展。
 
-使用方式:
-  char buf[1024] = { 0 };
-  serialize::mem_serialize os(buf);
+特点:
+	1. 接口简单，易于集成，方便维护
+	2. 基于Policy-based设计模式，默认提供binary及text两种格式化方式
+	3. 采用C++流式方式方便易用
+	4. 扩展性强（针对用户自定义类型，输出目标）
+	5. 编译期对用户自定义类型侦错，及in、out误用侦错
 
+使用方式:
+
+	 char buf[1024] = { 0 };
+	 serialize::mem_serialize os(buf);
 
 	{
 		std::pair<int, std::string> v{ 1, "1" };
@@ -18,14 +25,12 @@ Use of this source code is governed by a BSD-style license that can be found in 
 		os >> v2;
 	}
 
-
 	{
 		std::tuple<int, std::pair<int, std::string>> v{ 1, {1, "1"} };
 		os << v;
 		std::tuple<int, std::pair<int, std::string>> v2;
 		os >> v2;
 	}
-
 
 	std::vector<int> a1(10);
 	std::fill(a1.begin(), a1.end(), 10);
@@ -73,36 +78,6 @@ Use of this source code is governed by a BSD-style license that can be found in 
 	assert(std::equal(a5.begin(), a5.begin(), b5.begin()));
 
 
-
-
-	std::multiset<long> a6;
-	a6.insert(1L);
-	a6.insert(10L);
-	a6.insert(10L);
-	a6.insert(10L);
-	a6.insert(100L);
-	a6.insert(100L);
-	os << a6;
-	std::set<long> b6;
-	os >> b6;
-	assert(std::equal(a6.begin(), a6.begin(), b6.begin()));
-
-
-
-
-	std::multimap<std::string, long> a7;
-	a7.insert(std::make_pair("123", 1L));
-	a7.insert(std::make_pair("123", 1L));
-	a7.insert(std::make_pair("1234", 10L));
-	a7.insert(std::make_pair("1234", 100L));
-	a7.insert(std::make_pair("1234", 1000L));
-	a7.insert(std::make_pair("12345", 100L));
-	os << a7;
-	std::multimap<std::string, long> b7;
-	os >> b7;
-	assert(std::equal(a7.begin(), a7.begin(), b7.begin()));
-
-
 	typedef std::map<std::pair<std::string, long>, std::vector<std::wstring>> VecMap;
 	VecMap a8;
 	std::vector<std::wstring> vec;
@@ -115,3 +90,6 @@ Use of this source code is governed by a BSD-style license that can be found in 
 	VecMap b8;
 	os >> b8;
 	assert(std::equal(a8.begin(), a8.begin(), b8.begin()));
+	
+
+
