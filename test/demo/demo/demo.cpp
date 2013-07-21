@@ -460,11 +460,33 @@ void test7( )
 
 void test8()
 {
+	// text binary
 	char buffer[1024] = {0};
 	serialize::text_serialize os(buffer);
 
-	os << "1" << 123 << "test" << "测试";
+	os << "1 " << 123 << " test " << " 测试 " << std::vector<std::string>{"test1", "test2", "test3"};
+}
 
+void test9()
+{
+	char buffer[1024] = { 0 };
+	
+	{
+		serialize::o_serialize os(buffer);
+		os << 1;
+
+		serialize::i_serialize in(buffer);
+		int n = 0;
+		in >> n;
+	}
+
+	{
+		serialize::o_text_serialize os(buffer);
+		os << __FUNCTION__ << ' ' << "test";
+
+		//std::string name;
+		//os >> name;
+	}
 }
 
 int _tmain(int argc, _TCHAR* argv[])
@@ -477,6 +499,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	test6();
 	test7();
 	test8();
+	test9();
 
 	system("pause");
 	return 0;

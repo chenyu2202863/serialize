@@ -14,11 +14,43 @@ namespace serialize { namespace detail {
 		typename CharT,
 		template < typename > class BufferT
 	>
+	struct empty_in_t
+	{
+		typedef std::false_type is_need_in_t; 
+		typedef std::false_type	is_need_length_t;
+
+		empty_in_t(BufferT<CharT> &buffer)
+		{}
+
+		template < typename T >
+		void push(const T &val)
+		{
+		}
+
+		template < typename T, std::uint32_t N >
+		void push_array(const T(&arr)[N])
+		{
+		}
+
+		template < typename T >
+		void push_pointer(const T * const ptr, std::uint32_t cnt = 1)
+		{
+		}
+	};
+
+
+	template <
+		typename CharT,
+		template < typename > class BufferT
+	>
 	class binary_in_t
 	{
 		typedef BufferT<CharT>		buffer_t;
 
 	public:
+		typedef std::true_type		is_need_in_t; 
+		typedef std::true_type		is_need_length_t;
+
 		typedef CharT				value_type;
 		typedef CharT *				pointer;
 		typedef value_type &		reference;
@@ -98,6 +130,8 @@ namespace serialize { namespace detail {
 		typedef BufferT<CharT>		buffer_t;
 
 	public:
+		typedef std::true_type		is_need_in_t; 
+		typedef std::false_type		is_need_length_t;
 		typedef CharT				value_type;
 		typedef CharT *				pointer;
 		typedef value_type &		reference;
