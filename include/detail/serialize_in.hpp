@@ -4,8 +4,6 @@
 #include <cassert>
 #include <type_traits>
 #include <cstdint>
-#include <sstream>
-
 
 namespace serialize { namespace detail {
 
@@ -165,30 +163,20 @@ namespace serialize { namespace detail {
 			if(sizeof( T ) + in_pos_ > buffer_.buffer_length())
 				throw std::out_of_range("sizeof(T) + pos_ > bufLen_");
 
-			std::basic_ostringstream<CharT> os;
-			os << val;
-
-			const auto &t = os.str();
-			buffer_.write(t.c_str(), t.size(), in_pos_);
+			auto t = std::to_string(val);
+			buffer_.write(t.data(), t.size(), in_pos_);
 			in_pos_ += t.size();
 		}
 
-		template < typename T, std::uint32_t N >
-		void push_array(const T(&arr)[N])
+		void push(char val)
 		{
-			static_assert( std::is_pod<T>::value, "T must be a POD type" );
-
-			const std::uint32_t len = sizeof( T ) * N;
-			assert(len + in_pos_ <= buffer_.buffer_length());
-			if(len + in_pos_ > buffer_.buffer_length())
+			// ºÏ≤‚T¿‡–Õ
+			assert(sizeof(val) + in_pos_ <= buffer_.buffer_length());
+			if(sizeof(val) + in_pos_ > buffer_.buffer_length())
 				throw std::out_of_range("sizeof(T) + pos_ > bufLen_");
 
-			std::basic_ostringstream<CharT> os;
-			os.write(arr, N);
-
-			const auto &t = os.str();
-			buffer_.write(t.c_str(), t.size(), in_pos_);
-			in_pos_ += t.size();
+			buffer_.write(&val, sizeof(val), in_pos_);
+			in_pos_ += sizeof(val);
 		}
 
 		template < typename T >
@@ -201,12 +189,8 @@ namespace serialize { namespace detail {
 			if(len + in_pos_ > buffer_.buffer_length())
 				throw std::out_of_range("sizeof(T) + pos_ > bufLen_");
 
-			std::basic_ostringstream<CharT> os;
-			os << ptr;
-
-			const auto &t = os.str();
-			buffer_.write(t.c_str(), t.size(), in_pos_);
-			in_pos_ += t.size();
+			buffer_.write(ptr, cnt, in_pos_);
+			in_pos_ += cnt;
 		}
 	};
 }

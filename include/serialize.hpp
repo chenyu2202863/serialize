@@ -128,14 +128,16 @@ namespace serialize {
 	// -------------------------------------------------
 
 	template < typename CharT, template < typename > class BufferT, typename InT, typename OutT, typename T >
-	typename std::enable_if<InT::is_need_in_t::value, serialize_t<CharT, BufferT, InT, OutT> &>::type operator<<(serialize_t<CharT, BufferT, InT, OutT> &os, const T &val)
+	typename std::enable_if<InT::is_need_in_t::value && detail::select_traits_t<T>::is_defined_type, serialize_t<CharT, BufferT, InT, OutT> &>::type 
+		operator<<(serialize_t<CharT, BufferT, InT, OutT> &os, const T &val)
 	{
 		detail::select_traits_t<typename std::remove_const<T>::type>::push(os, val);
 		return os;
 	}
 
 	template < typename CharT, template < typename > class BufferT, typename InT, typename OutT, typename T >
-	typename std::enable_if<OutT::is_need_out_t::value, serialize_t<CharT, BufferT, InT, OutT> &>::type &operator>>(serialize_t<CharT, BufferT, InT, OutT> &os, T &val)
+	typename std::enable_if<OutT::is_need_out_t::value && detail::select_traits_t<T>::is_defined_type, serialize_t<CharT, BufferT, InT, OutT> &>::type
+		operator>>(serialize_t<CharT, BufferT, InT, OutT> &os, T &val)
 	{
 		detail::select_traits_t<typename std::remove_const<T>::type>::pop(os, val);
 		return os;

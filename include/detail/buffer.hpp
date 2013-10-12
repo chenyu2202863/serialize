@@ -34,6 +34,11 @@ namespace serialize { namespace detail {
 		{}
 
 	public:
+		pointer buffer()
+		{
+			return buf_;
+		}
+
 		const_pointer buffer() const
 		{
 			return buf_;

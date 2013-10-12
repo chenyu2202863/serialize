@@ -19,12 +19,15 @@ namespace serialize { namespace detail {
 	template < typename ContainerT >
 	struct is_container_t
 	{
+		static const bool is_defined_type = false;
 		static const bool value = false;
 	};
 
 	template < typename KeyT, typename ValueT >
 	struct is_container_t< std::pair<KeyT, ValueT> >
 	{
+		static const bool is_defined_type = true;
+
 		static const bool value = true;
 	};
 
@@ -37,66 +40,87 @@ namespace serialize { namespace detail {
 	template < typename T, typename AllocatorT >
 	struct is_container_t< std::vector<T, AllocatorT> >
 	{
+		static const bool is_defined_type = true;
+
 		static const bool value = true;
 	};
 
 	template < typename T, typename AllocatorT >
 	struct is_container_t< std::list<T, AllocatorT> >
 	{
+		static const bool is_defined_type = true;
+
 		static const bool value = true;
 	};
 
 	template < typename T, typename AllocatorT >
 	struct is_container_t< std::deque<T, AllocatorT> >
 	{
+		static const bool is_defined_type = true;
+
 		static const bool value = true;
 	};
 
 	template < typename KeyT, typename ValueT, typename LessT, typename AllocatorT >
 	struct is_container_t< std::map<KeyT, ValueT, LessT, AllocatorT> >
 	{
+		static const bool is_defined_type = true;
+
 		static const bool value = true;
 	};
 
 	template < typename KeyT, typename LessT, typename AllocatorT >
 	struct is_container_t< std::set<KeyT, LessT, AllocatorT> >
 	{
+		static const bool is_defined_type = true;
+
 		static const bool value = true;
 	};
 
 	template < typename KeyT, typename ValueT, typename LessT, typename AllocatorT >
 	struct is_container_t< std::unordered_map<KeyT, ValueT, LessT, AllocatorT> >
 	{
+		static const bool is_defined_type = true;
+
 		static const bool value = true;
 	};
 
 	template < typename KeyT, typename LessT, typename AllocatorT >
 	struct is_container_t< std::unordered_set<KeyT, LessT, AllocatorT> >
 	{
+		static const bool is_defined_type = true;
 		static const bool value = true;
 	};
 
 	template < typename KeyT, typename ValueT, typename LessT, typename AllocatorT >
 	struct is_container_t< std::multimap<KeyT, ValueT, LessT, AllocatorT> >
 	{
+		static const bool is_defined_type = true;
+
 		static const bool value = true;
 	};
 
 	template < typename KeyT, typename LessT, typename AllocatorT >
 	struct is_container_t< std::multiset<KeyT, LessT, AllocatorT> >
 	{
+		static const bool is_defined_type = true;
+
 		static const bool value = true;
 	};
 
 	template < typename KeyT, typename ValueT, typename LessT, typename AllocatorT >
 	struct is_container_t< std::unordered_multimap<KeyT, ValueT, LessT, AllocatorT> >
 	{
+		static const bool is_defined_type = true;
+
 		static const bool value = true;
 	};
 
 	template < typename KeyT, typename LessT, typename AllocatorT >
 	struct is_container_t< std::unordered_multiset<KeyT, LessT, AllocatorT> >
 	{
+		static const bool is_defined_type = true;
+
 		static const bool value = true;
 	};
 
@@ -107,7 +131,7 @@ namespace serialize { namespace detail {
 	class container_traits_t
 	{
 	public:
-		typedef ValTraitsT								value_type;
+		typedef ValTraitsT value_type;
 
 	public:
 		template < typename StreamT >

@@ -482,7 +482,9 @@ void test9()
 
 	{
 		serialize::o_text_serialize os(buffer);
-		os << __FUNCTION__ << ' ' << "test";
+		os << __FUNCTION__ << ' ' << 123 << ' ' << 10.23 << "test";
+
+		std::string xx(buffer, os.in_length());
 
 		//std::string name;
 		//os >> name;
