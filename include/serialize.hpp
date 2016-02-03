@@ -26,7 +26,7 @@ namespace serialize {
 
 	template < 
 		typename CharT, 
-		template < typename > class BufferT,
+		typename BufferT,
 		typename InT = detail::binary_in_t<CharT, BufferT>,
 		typename OutT = detail::binary_out_t<CharT, BufferT>
 	>
@@ -38,14 +38,14 @@ namespace serialize {
 		typedef serialize_t<CharT, BufferT, InT, OutT>		this_t;
 		typedef InT											in_t;
 		typedef OutT										out_t;
-		typedef BufferT<CharT>								buffer_t;
+		typedef BufferT										buffer_t;
 		typedef typename in_t::is_need_length_t				is_need_length_t;
 
-		typedef typename BufferT<CharT>::value_type			value_type;
-		typedef typename BufferT<CharT>::pointer			pointer;
-		typedef typename BufferT<CharT>::reference			reference;
-		typedef typename BufferT<CharT>::const_pointer		const_pointer;
-		typedef typename BufferT<CharT>::const_reference	const_reference;
+		typedef typename buffer_t::value_type				value_type;
+		typedef typename buffer_t::pointer					pointer;
+		typedef typename buffer_t::reference				reference;
+		typedef typename buffer_t::const_pointer			const_pointer;
+		typedef typename buffer_t::const_reference			const_reference;
 
 	private:
 		buffer_t buffer_;
@@ -58,12 +58,8 @@ namespace serialize {
 			, buffer_(std::forward<Arg>(arg)...)
 		{}
 
-		template < std::uint32_t N >
-		explicit serialize_t(value_type (&buf)[N])
-			: in_t(buffer_)
-			, out_t(buffer_)
-			, buffer_(buf, N)
-		{}
+		serialize_t(const serialize_t &) = delete;
+		serialize_t &operator=(const serialize_t &) = delete;
 
 	public:
 		pointer buffer()
@@ -97,37 +93,44 @@ namespace serialize {
 		}
 	};
 
-	typedef serialize_t<char, detail::memory_t>		mem_serialize;
-	typedef serialize_t<wchar_t, detail::memory_t>	mem_wserialize;
+	typedef serialize_t<char, detail::memory_t<char>>		mem_serialize;
+	typedef serialize_t<wchar_t, detail::memory_t<wchar_t>>	mem_wserialize;
 
-	typedef serialize_t<char, detail::file_t>		file_serialize;
+	typedef serialize_t<char, detail::file_t<char>>		file_serialize;
 
-	typedef serialize_t<char, detail::memory_t, detail::text_in_t<char, detail::memory_t>> text_serialize; 
+	typedef serialize_t<char, detail::memory_t<char>, detail::text_in_t<char, detail::memory_t<char>>> text_serialize; 
 
 	typedef serialize_t<
 		char, 
-		detail::memory_t, 
-		detail::empty_in_t<char, detail::memory_t>, 
-		detail::binary_out_t<char, detail::memory_t>
+		detail::memory_t<char>, 
+		detail::empty_in_t<char, detail::memory_t<char>>, 
+		detail::binary_out_t<char, detail::memory_t<char>>
 	> i_serialize;
 
 	typedef serialize_t<
 		char, 
-		detail::memory_t, 
-		detail::binary_in_t<char, detail::memory_t>,
-		detail::empty_out_t<char, detail::memory_t>
+		detail::memory_t<char>, 
+		detail::binary_in_t<char, detail::memory_t<char>>,
+		detail::empty_out_t<char, detail::memory_t<char>>
 	> o_serialize;
 
 	typedef serialize_t <
 		char,
-		detail::memory_t,
-		detail::text_in_t<char, detail::memory_t>,
-		detail::empty_out_t<char, detail::memory_t>
+		detail::memory_t<char>,
+		detail::text_in_t<char, detail::memory_t<char>>,
+		detail::empty_out_t<char, detail::memory_t<char>>
 	> o_text_serialize;
+
+	typedef serialize_t<
+		char, 
+		detail::dynamic_memory_t<char>, 
+		detail::binary_in_t<char, detail::dynamic_memory_t<char>>,
+		detail::empty_out_t<char, detail::dynamic_memory_t<char>>
+	> o_dynamic_serialize;
 
 	// -------------------------------------------------
 
-	template < typename CharT, template < typename > class BufferT, typename InT, typename OutT, typename T >
+	template < typename CharT, typename BufferT, typename InT, typename OutT, typename T >
 	typename std::enable_if<InT::is_need_in_t::value && detail::select_traits_t<T>::is_defined_type, serialize_t<CharT, BufferT, InT, OutT> &>::type 
 		operator<<(serialize_t<CharT, BufferT, InT, OutT> &os, const T &val)
 	{
@@ -135,7 +138,7 @@ namespace serialize {
 		return os;
 	}
 
-	template < typename CharT, template < typename > class BufferT, typename InT, typename OutT, typename T >
+	template < typename CharT, typename BufferT, typename InT, typename OutT, typename T >
 	typename std::enable_if<OutT::is_need_out_t::value && detail::select_traits_t<T>::is_defined_type, serialize_t<CharT, BufferT, InT, OutT> &>::type
 		operator>>(serialize_t<CharT, BufferT, InT, OutT> &os, T &val)
 	{

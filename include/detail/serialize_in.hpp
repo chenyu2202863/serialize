@@ -10,14 +10,14 @@ namespace serialize { namespace detail {
 
 	template <
 		typename CharT,
-		template < typename > class BufferT
+		typename BufferT
 	>
 	struct empty_in_t
 	{
 		typedef std::false_type is_need_in_t; 
 		typedef std::false_type	is_need_length_t;
 
-		empty_in_t(BufferT<CharT> &buffer)
+		empty_in_t(BufferT &buffer)
 		{}
 
 		template < typename T >
@@ -39,11 +39,11 @@ namespace serialize { namespace detail {
 
 	template <
 		typename CharT,
-		template < typename > class BufferT
+		typename BufferT
 	>
 	class binary_in_t
 	{
-		typedef BufferT<CharT>		buffer_t;
+		typedef BufferT				buffer_t;
 
 	public:
 		typedef std::true_type		is_need_in_t; 
@@ -78,9 +78,11 @@ namespace serialize { namespace detail {
 			static_assert( std::is_pod<T>::value, "T must be a POD type" );
 
 			// ºÏ≤‚T¿‡–Õ
-			assert(sizeof( T ) + in_pos_ <= buffer_.buffer_length());
-			if(sizeof( T ) + in_pos_ > buffer_.buffer_length())
-				throw std::out_of_range("sizeof(T) + pos_ > bufLen_");
+			if( sizeof(T) + in_pos_ > buffer_.buffer_length() )
+			{
+				if( !buffer_.grow(sizeof(T)) )
+					throw std::out_of_range("sizeof(T) + pos_ > bufLen_");
+			}
 
 			const_pointer buf = reinterpret_cast< const_pointer >( &val );
 			buffer_.write(buf, sizeof( T ), in_pos_);
@@ -93,9 +95,11 @@ namespace serialize { namespace detail {
 			static_assert( std::is_pod<T>::value, "T must be a POD type" );
 
 			const std::uint32_t len = sizeof( T ) * N;
-			assert(len + in_pos_ <= buffer_.buffer_length());
-			if(len + in_pos_ > buffer_.buffer_length())
-				throw std::out_of_range("sizeof(T) + pos_ > bufLen_");
+			if( len + in_pos_ > buffer_.buffer_length() )
+			{
+				if( !buffer_.grow(len) )
+					throw std::out_of_range("len + in_pos_ > buffer_.buffer_length()");
+			}
 
 			const_pointer buf = reinterpret_cast< const_pointer >( &arr );
 			buffer_.write(buf, len, in_pos_);
@@ -108,9 +112,11 @@ namespace serialize { namespace detail {
 			static_assert( std::is_pod<T>::value, "T must be a POD type" );
 
 			const std::uint32_t len = sizeof( T ) * cnt;
-			assert(len + in_pos_ <= buffer_.buffer_length());
-			if(len + in_pos_ > buffer_.buffer_length())
-				throw std::out_of_range("sizeof(T) + pos_ > bufLen_");
+			if( len + in_pos_ > buffer_.buffer_length() )
+			{
+				if( !buffer_.grow(len) )
+					throw std::out_of_range("len + in_pos_ > buffer_.buffer_length()");
+			}
 
 			const_pointer buf = reinterpret_cast< const_pointer >( ptr );
 			buffer_.write(buf, len, in_pos_);
@@ -121,11 +127,11 @@ namespace serialize { namespace detail {
 
 	template <
 		typename CharT,
-		template < typename > class BufferT
+		typename BufferT
 	>
 	class text_in_t
 	{
-		typedef BufferT<CharT>		buffer_t;
+		typedef BufferT				buffer_t;
 
 	public:
 		typedef std::true_type		is_need_in_t; 
@@ -164,8 +170,8 @@ namespace serialize { namespace detail {
 				throw std::out_of_range("sizeof(T) + pos_ > bufLen_");
 
 			auto t = std::to_string(val);
-			buffer_.write(t.data(), t.size(), in_pos_);
-			in_pos_ += t.size();
+			buffer_.write(t.data(), (std::uint32_t)t.size(), in_pos_);
+			in_pos_ += (std::uint32_t)t.size();
 		}
 
 		void push(char val)
@@ -180,7 +186,7 @@ namespace serialize { namespace detail {
 		}
 
 		template < typename T >
-		void push_pointer(const T * const ptr, std::uint32_t cnt = 1)
+		void push_pointer(const T * const ptr, std::uint32_t cnt)
 		{
 			static_assert( std::is_pod<T>::value, "T must be a POD type" );
 

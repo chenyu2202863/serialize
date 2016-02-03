@@ -21,7 +21,12 @@ namespace serialize { namespace detail {
 	template < typename StreamT >
 	void push_length_impl(StreamT &os, std::uint32_t length,
 						  typename std::enable_if<!StreamT::is_need_length_t::value>::type * = nullptr)
+	{}
+
+	template < typename StreamT >
+	void pop_length_impl(StreamT &os, std::uint32_t &length)
 	{
+		os.pop(length);
 	}
 
 
@@ -32,6 +37,7 @@ namespace serialize { namespace detail {
 			std::is_integral<T>::value ||
 			std::is_floating_point<T>::value ||
 			std::is_enum<T>::value ||
+			std::is_pod<T>::value ||
 			is_container_t<T>::is_defined_type;
 
 		template < typename StreamT, typename U >
@@ -41,6 +47,15 @@ namespace serialize { namespace detail {
 						 std::is_floating_point<U>::value ||
 						 std::is_enum<U>::value
 						 > ::type * = nullptr)
+		{
+			os.push(val);
+		}
+
+		template < typename StreamT, typename U >
+		static void push(StreamT &os, const U &val,
+			typename std::enable_if<!is_container_t<U>::value &&
+				std::is_class<U>::value && 
+				std::is_pod<U>::value>::type * = nullptr)
 		{
 			os.push(val);
 		}
@@ -64,6 +79,14 @@ namespace serialize { namespace detail {
 			os.pop(val);
 		}
 
+		template < typename StreamT, typename U >
+		static void pop(StreamT &os, U &val,
+			typename std::enable_if<!is_container_t<U>::value &&
+			std::is_class<U>::value &&
+			std::is_pod<U>::value>::type * = nullptr)
+		{
+			os.pop(val);
+		}
 
 		template < typename StreamT, typename U >
 		static void pop(StreamT &os, U &val,
@@ -82,7 +105,7 @@ namespace serialize { namespace detail {
 		template < typename StreamT >
 		static void push(StreamT &os, const char *val)
 		{
-			std::uint32_t len = std::char_traits<char>::length(val);
+			std::uint32_t len = (std::uint32_t)std::char_traits<char>::length(val);
 			push_length_impl(os, len);
 			os.push_pointer(val, len);
 		}
@@ -91,7 +114,7 @@ namespace serialize { namespace detail {
 		static void pop(StreamT &os, char *val)
 		{
 			std::uint32_t bufLen = 0;
-			os.pop(bufLen);
+			pop_length_impl(os, bufLen);
 			os.pop_pointer(val, bufLen);
 		}
 	};
@@ -113,7 +136,7 @@ namespace serialize { namespace detail {
 		static void pop(StreamT &os, wchar_t *val)
 		{
 			std::uint32_t bufLen = 0;
-			os.pop(bufLen);
+			pop_length_impl(os, bufLen);
 			os.pop_pointer(val, bufLen);
 		}
 	};
@@ -162,15 +185,20 @@ namespace serialize { namespace detail {
 		template < typename StreamT >
 		static void push(StreamT &os, const char (&val)[N])
 		{
-			push_length_impl(os, N);
-			os.push_pointer(val, std::char_traits<char>::length(val));
+			auto len = (std::uint32_t)std::char_traits<char>::length(val);
+			push_length_impl(os, len);
+			os.push_pointer(val, len);
 		}
 
 		template < typename StreamT >
 		static void pop(StreamT &os, char (&val)[N])
 		{
 			std::uint32_t bufLen = 0;
-			os.pop(bufLen);
+			pop_length_impl(os, bufLen);
+
+			if( bufLen >= N )
+				throw std::out_of_range("bufLen >= N");
+
 			os.pop_pointer(val, bufLen);
 		}
 	};
@@ -183,15 +211,21 @@ namespace serialize { namespace detail {
 		template < typename StreamT >
 		static void push(StreamT &os, const wchar_t(&val)[N])
 		{
-			push_length_impl(os, N);
-			os.push_pointer(val, std::char_traits<wchar_t>::length(val));
+			auto len = (std::uint32_t)std::char_traits<wchar_t>::length(val);
+
+			push_length_impl(os, len);
+			os.push_pointer(val, len);
 		}
 
 		template < typename StreamT >
 		static void pop(StreamT &os, wchar_t (&val)[N])
 		{
 			std::uint32_t bufLen = 0;
-			os.pop(bufLen);
+			pop_length_impl(os, bufLen);
+
+			if( bufLen >= N )
+				throw std::out_of_range("bufLen >= N");
+
 			os.pop_pointer(val, bufLen);
 		}
 	};
@@ -268,15 +302,15 @@ namespace serialize { namespace detail {
 		template < typename StreamT >
 		static void push(StreamT &os, const std::basic_string<T, TraitsT, AllocatorT> &val)
 		{
-			push_length_impl(os, val.size());
-			os.push_pointer(val.c_str(), val.size());
+			push_length_impl(os, (std::uint32_t)val.size());
+			os.push_pointer(val.c_str(), (std::uint32_t)val.size());
 		}
 
 		template < typename StreamT >
 		static void pop(StreamT &os, std::basic_string<T, TraitsT, AllocatorT> &val)
 		{
 			std::uint32_t bufLen = 0;
-			os.pop(bufLen);
+			pop_length_impl(os, bufLen);
 
 			val.resize(bufLen);
 			os.pop_pointer(&val[0], bufLen);
@@ -297,7 +331,27 @@ namespace serialize { namespace detail {
 		template < typename StreamT >
 		static void pop(StreamT &os, std::shared_ptr<T> &val)
 		{
-			val.reset(new T);
+			val = std::make_shared<T>();
+			os >> *val;
+		}
+	};
+
+
+	template < typename T >
+	struct select_traits_t< std::unique_ptr<T> >
+	{
+		static const bool is_defined_type = true;
+
+		template < typename StreamT >
+		static void push(StreamT &os, const std::unique_ptr<T> &val)
+		{
+			os << *val;
+		}
+
+		template < typename StreamT >
+		static void pop(StreamT &os, std::unique_ptr<T> &val)
+		{
+			val = std::make_unique<T>();
 			os >> *val;
 		}
 	};
