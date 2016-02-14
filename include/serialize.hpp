@@ -123,9 +123,9 @@ namespace serialize {
 
 	typedef serialize_t<
 		char, 
-		detail::dynamic_memory_t<char>, 
-		detail::binary_in_t<char, detail::dynamic_memory_t<char>>,
-		detail::empty_out_t<char, detail::dynamic_memory_t<char>>
+		detail::dynamic_memory_t<char, std::vector<char>>, 
+		detail::binary_in_t<char, detail::dynamic_memory_t<char, std::vector<char>>>,
+		detail::empty_out_t<char, detail::dynamic_memory_t<char, std::vector<char>>>
 	> o_dynamic_serialize;
 
 	// -------------------------------------------------

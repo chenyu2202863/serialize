@@ -73,7 +73,7 @@ namespace serialize { namespace detail {
 	};
 
 
-	template < typename CharT, typename BufferT = std::vector<char> >
+	template < typename CharT, typename BufferT >
 	class dynamic_memory_t
 	{
 	public:
